@@ -3,6 +3,7 @@
 
 #include "byte_stream.hh"
 
+#include <iostream>
 #include <cstdint>
 #include <string>
 #include <list>
@@ -18,6 +19,7 @@ class StreamReassembler {
     std::list<std::pair<std::string, size_t> > _unassembled_buffer;
     size_t _unassembled_bytes;
     bool _eof;
+    size_t _eof_idx;
 
     //! \brief Reset the unassembled buffer(merge overlapping substrings)
     void reset_buffer();
