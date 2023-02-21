@@ -28,7 +28,7 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
-    uint32_t diff = static_cast<uint32_t>(n - wrap(checkpoint, isn));
+    const uint32_t diff = static_cast<uint32_t>(n - wrap(checkpoint, isn));
     if (diff < (1U << 31)) return checkpoint + diff;
     else {
         uint64_t res = checkpoint - ((1UL << 32) - static_cast<uint64_t>(diff));
