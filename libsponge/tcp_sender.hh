@@ -9,6 +9,32 @@
 #include <functional>
 #include <queue>
 
+//! \brief the TCP time keeper
+class Timer {
+  private:
+    //! the retransmission timeout
+    size_t _rto{0};
+    //! the time left currently
+    size_t _time_left{0};
+    //! if the timer has been closed
+    bool _closed{true};
+  public:
+    //! construtor
+    Timer (const size_t& rto) : _rto(rto) {}
+    //! \brief set the timer's RTO
+    void set_rto(const size_t& rto) { _rto = rto; }
+    //! \brief start the timer
+    void start_timer() { _time_left = _rto; _closed = false; }
+    //! \brief close the timer
+    void close_timer() { _closed = true; }
+    //! \brief double the retransmission timeout in the timer
+    void double_rto() { _rto *= 2; }
+    //! \brief if the time is closed
+    bool is_closed() { return _closed; }
+    //! \brief check if the timer is expired when call tick()
+    bool is_expired(const size_t& ms_since_last_tick);
+};
+
 //! \brief The "sender" part of a TCP implementation.
 
 //! Accepts a ByteStream, divides it up into segments and sends the
@@ -31,6 +57,22 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    //！outstanding segments and its absolute seqno 
+    //! that have been set but not been acknowledged
+    std::queue<std::pair<TCPSegment, uint64_t>> _segments_outstanding{};
+    //! TCP receiver's window size
+    uint16_t _window_size{1};
+    //! sequence numbers are occupied by segments sent but not yet acknowledged
+    size_t _bytes_in_flight{0};
+    //! the number of consecutive retransmissions
+    size_t _consecutive_retransmissions{0};
+    //! the retransimission timer
+    Timer _timer;
+    //! Make a TCP header
+    TCPHeader make_header(const WrappingInt32&& seqno, bool syn = false, bool fin = false) const;
+    //! "Send" a TCP segment
+    void send_segment(const TCPSegment& segment);
 
   public:
     //! Initialize a TCPSender
