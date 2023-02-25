@@ -12,6 +12,9 @@ class TCPConnection {
     TCPConfig _cfg;
     TCPReceiver _receiver{_cfg.recv_capacity};
     TCPSender _sender{_cfg.send_capacity, _cfg.rt_timeout, _cfg.fixed_isn};
+    bool _active{true};
+    size_t _time_since_last_segment_received{0};
+    size_t _wait_time{0};
 
     //! outbound queue of segments that the TCPConnection wants sent
     std::queue<TCPSegment> _segments_out{};
@@ -20,6 +23,18 @@ class TCPConnection {
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
+
+    //! ask the TCPReceiver and set the ackno flag and window size field in header
+    void set_ackno_window_size(TCPHeader& header, bool rst);
+
+    //! before sending the segments, TCPConnection will ask TCPReceiver for the fields
+    void clear_sender_segments(bool rst = false);
+
+    //! send a reset segment to the peer
+    void send_reset_segment();
+
+    //! shut down the connection when sends or receives a segment with the RST flag set
+    void unclean_shutdown();
 
   public:
     //! \name "Input" interface for the writer
