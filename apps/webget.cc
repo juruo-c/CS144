@@ -1,4 +1,4 @@
-#include "socket.hh"
+#include "tcp_sponge_socket.hh"
 #include "util.hh"
 
 #include <cstdlib>
@@ -19,7 +19,7 @@ void get_URL(const string &host, const string &path) {
 
     // create client's socket and server's address
     Address serverAddress(host, "http");
-    TCPSocket clientSocket;
+    FullStackSocket clientSocket;
 
     // connect the server
     clientSocket.connect(serverAddress);

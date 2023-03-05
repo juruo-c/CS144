@@ -7,6 +7,9 @@
 
 #include <optional>
 #include <queue>
+#include <map>
+#include <vector>
+#include <set>
 
 //! \brief A "network interface" that connects IP (the internet layer, or network layer)
 //! with Ethernet (the network access layer, or link layer).
@@ -39,6 +42,29 @@ class NetworkInterface {
 
     //! outbound queue of Ethernet frames that the NetworkInterface wants sent
     std::queue<EthernetFrame> _frames_out{};
+
+    //! queue the ip datagram whose next hop's Ethernet address haven't known
+    std::map<uint32_t, std::vector<InternetDatagram> > _ip_datagrams{};
+
+    //! Mapping from IPv4 address to Ethernet address
+    std::map<uint32_t, EthernetAddress> _map_ipv4_to_ethernet{};
+
+    //! Mapping from IPv4 address to left valid time
+    std::map<uint32_t, size_t> _map_ipv4_to_time{};
+
+    //! the left valid time of cached mapping
+    std::queue<std::pair<uint32_t, size_t> > _cached_mapping{};
+
+    //! Stoged the requested ip of ARPs that have been sent in last five seconds
+    std::set<uint32_t> _ip_arp{};
+
+    //! the queue make sure if the arp message of the 
+    // same ip has been sent in the last five seconds
+    std::queue<std::pair<uint32_t, size_t> > _ip_arp_time{};
+
+    //! set the Ethernet header
+    void set_ethernet_header(EthernetHeader& header, const EthernetAddress& dst, 
+                            const EthernetAddress& src, const uint16_t& type);
 
   public:
     //! \brief Construct a network interface with given Ethernet (network-access-layer) and IP (internet-layer) addresses
